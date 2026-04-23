@@ -1,0 +1,10 @@
+{
+    "name": "Moutinhoart.Mpnpc.Editor",
+    "references": [
+      "Moutinhoart.Mpnpc"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

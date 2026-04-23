@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0772ac93a2cac2348936aacecbc0fd97, type: 3}
+  m_Name: DemoNpcPerceptionSettings
+  m_EditorClassIdentifier: Moutinhoart.Mpnpc::MP_Npc.Data.NpcPerceptionData
+  perceivedBufferSize: 4
+  visionSenseData:
+    distance: 10
+    vertialFieldOfView: 2.85
+    horizontalFieldOfView: 90
+    lostSightDistance: 15
+    visionBufferSize: 10
+    visionLayerMask:
+      serializedVersion: 2
+      m_Bits: 72
+    visionObstructionLayer:
+      serializedVersion: 2
+      m_Bits: 4294967295
+  soundSenseData:
+    range: 2.87
+  gizmoColorSightDistance: {r: 0, g: 1, b: 0, a: 1}
+  gizmoColorSightFieldOfView: {r: 0, g: 1, b: 0, a: 1}
+  gizmoCOlorLostSightDistance: {r: 0.5647059, g: 0.9333334, b: 0.5647059, a: 1}
+  gizmoColorDetection: {r: 0.031890113, g: 0.6037736, b: 0, a: 1}
+  gizmoColorVisabilityCheckLine: {r: 0.5490196, g: 0.7882354, b: 0.1411765, a: 1}
+  gizmoColor_PerceivedButNotSensedColor: {r: 0.9725491, g: 0.9725491, b: 1, a: 0.6431373}

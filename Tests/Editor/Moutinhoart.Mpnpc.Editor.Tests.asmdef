@@ -1,0 +1,14 @@
+{
+    "name": "Moutinhoart.Mpnpc.Editor.Tests",
+    "references": [
+        "Moutinhoart.Mpnpc.Editor",
+        "Moutinhoart.Mpnpc"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

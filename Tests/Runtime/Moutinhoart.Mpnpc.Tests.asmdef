@@ -1,0 +1,11 @@
+{
+    "name": "Moutinhoart.Mpnpc.Tests",
+    "references": [
+        "Moutinhoart.Mpnpc"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}

@@ -20,8 +20,8 @@ namespace MP_Npc.Perception
         /// Class Constructor
         /// </summary>
         /// <param name="inPerceptionSystem"></param>
-        /// <param name="inGameObject"></param>
-        public NpcSense(in PerceptionSystem inPerceptionSystem, in GameObject inGameObject)
+        /// <param name="inOwnerGameObject"></param>
+        public NpcSense(in PerceptionSystem inPerceptionSystem, in GameObject inOwnerGameObject)
         {
             // safety check of : inPerceptionSystem input parameter
             if(inPerceptionSystem != null)
@@ -43,15 +43,15 @@ namespace MP_Npc.Perception
                 Debug.LogError(this + " : [ MARCO ] : NpcSense( constructor... ) : ''inPerceptionData'' is null !!!");
             }
 
-            // safety check of : inGameObject input parameter
-            if(inGameObject != null)
+            // safety check of : inOwnerGameObject input parameter
+            if(inOwnerGameObject != null)
             {
-                _ownerGameObject = inGameObject;
-                _ownerTransform = inGameObject.transform;
+                _ownerGameObject = inOwnerGameObject;
+                _ownerTransform = inOwnerGameObject.transform;
             }
             else
             {
-                Debug.LogError(this + " : [ MARCO ] : NpcSense( constructor... ) : ''inGameObject'' is null !!!");
+                Debug.LogError(this + " : [ MARCO ] : NpcSense( constructor... ) : ''inOwnerGameObject'' is null !!!");
             }
 
             // initialize arrays and Lists
@@ -111,8 +111,8 @@ namespace MP_Npc.Perception
             /// IMPORTANT NOTE !
             /// every rule of lose sight should have a equivalent to be able to gain sense, if not it will create a endless conflict of enter and lost sense;
             /// this has happened to me when creating the vision sense, what happened?
-            /// I had two conditions to lost sight A: be out of range/distance B: the angle between Npc sensing forward and sensed GameObject direction relative to him;
-            /// But to gain sense / perception is was only needed to be on range, so every frame it enter cause it was on correct distance but then lost sense cause it my not be on the FOV / angle;
+            /// I had two conditions to lost sight A: be out of distance/distance B: the angle between Npc sensing forward and sensed GameObject direction relative to him;
+            /// But to gain sense / perception is was only needed to be on distance, so every frame it enter cause it was on correct distance but then lost sense cause it my not be on the FOV / angle;
             /// Solution : so i create a new funtion, a method that return a bool value to check if can enter sense;
             
             /*

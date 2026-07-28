@@ -8,7 +8,8 @@
   "dependencies": {
     "com.unity.test-framework": "1.6.0",
     "com.unity.ai.navigation": "2.0.12",
-    "com.moutinhoart.mp_coreutilities": "0.1.0"
+    "com.moutinhoart.mp_coreutilities": "0.1.0",
+    "com.moutinhoart.mpgameplay": "0.1.0"
   },
   "author": {
     "name": "Marco Moutinho",

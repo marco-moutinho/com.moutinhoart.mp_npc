@@ -38,12 +38,18 @@ namespace MP_Npc.Perception
         [System.Serializable]
         public struct StSoundSense
         {
-            public float range;
+            public float distance;
         }
 
         [Header("[ Senses Settings ]")]
         [Min(1)] public int perceivedBufferSize;
+
+        [Header("< VISION >")]
+        public bool hasVision = true;
         public StVisionSense visionSenseData;
+
+        [Header("< HEARING >")]
+        public bool hasHearing = false;
         public StSoundSense soundSenseData;
 
         [Header("< GIZMOS >")]

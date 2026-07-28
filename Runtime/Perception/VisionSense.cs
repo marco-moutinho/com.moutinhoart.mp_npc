@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 // created on 20 - Apr - 2026
 // last change 22 - Apr - 2026
 namespace MP_Npc.Perception
@@ -10,6 +8,7 @@ namespace MP_Npc.Perception
         protected float _visionDistance;
         protected float _visionDistanceModifier;
         float _convertedFovAngleToDot;
+        int _OverlapedCollidersAmmount;
 
         // if the sense perceive more than the buffer size, how should it handle?, by distance?
         //protected float _bCheckForClosest;
@@ -33,17 +32,23 @@ namespace MP_Npc.Perception
             base.Method_Execute();
             Method_ExecuteVision();
             Method_ExecuteLoseSenseLoop();
+
+            if (_enableDebugLog)
+            {
+                Debug.Log(this + " : Method_Execute() : _sensedGameObjects.Count = " + _sensedGameObjects.Count);
+                Debug.Log(this + " : Method_Execute() : _OverlapedCollidersBuffer.Length: " + _OverlapedCollidersBuffer.Length);
+            }
         }
 
         protected virtual void Method_ExecuteVision()
         {
-            int lcFoundCollidersAmmount = Physics.OverlapSphereNonAlloc(_ownerTransform.position, _perceptionData.visionSenseData.distance, results: _OverlapedCollidersBuffer, _perceptionData.visionSenseData.visionLayerMask, QueryTriggerInteraction.Ignore);
+            _OverlapedCollidersAmmount = Physics.OverlapSphereNonAlloc(_ownerTransform.position, _perceptionData.visionSenseData.distance, results: _OverlapedCollidersBuffer, _perceptionData.visionSenseData.visionLayerMask, QueryTriggerInteraction.Ignore);
 
             // TO DO...
             //if (lcFoundCollidersAmmount > _OverlapedCollidersBuffer.Length) { }
 
             // for loop of : check if sensed GameObject has already been sensed...
-            for (int i = 0; i < lcFoundCollidersAmmount; i++)
+            for (int i = 0; i < _OverlapedCollidersAmmount; i++)
             {
                 GameObject lcCurrentGameObject = _OverlapedCollidersBuffer[i].gameObject;
 
@@ -63,6 +68,7 @@ namespace MP_Npc.Perception
                             Method_OnEnterSense(lcCurrentGameObject);
                         }
                     }
+                    // if has overlaped something but has a null value..
                     else
                     {
                         // what if the slot already has a value?
@@ -132,8 +138,8 @@ namespace MP_Npc.Perception
             Gizmos.DrawSphere(_ownerTransform.position, _perceptionData.visionSenseData.distance);
 
             // lost sight gizmo
-            Gizmos.color = _perceptionData.gizmoCOlorLostSightDistance;
-            Gizmos.DrawWireSphere(_ownerTransform.position, _perceptionData.visionSenseData.lostSightDistance);
+            //Gizmos.color = _perceptionData.gizmoCOlorLostSightDistance;
+            //Gizmos.DrawWireSphere(_ownerTransform.position, _perceptionData.visionSenseData.lostSightDistance);
 
             // Fov
             float lcAngle = _perceptionData.visionSenseData.horizontalFieldOfView;
@@ -156,9 +162,13 @@ namespace MP_Npc.Perception
                 Gizmos.DrawLine(_sensedGameObjects[i].transform.position, _ownerGameObject.transform.position);
             }
 
+            
+            
             Gizmos.color = _perceptionData.gizmoColor_PerceivedButNotSensedColor;
-            // possible to perceived but not sensed
-            for(int i2 = 0; i2 < _OverlapedCollidersBuffer.Length; i2++)
+            
+            // possible to perceived but not sensed AKA overlaped by the cast
+            
+            for(int i2 = 0; i2 < _OverlapedCollidersAmmount; i2++)
             {
                 GameObject lcGo = _OverlapedCollidersBuffer[i2].gameObject;
                 if (lcGo != null && _sensedGameObjects.Contains(lcGo) == false)
@@ -166,6 +176,8 @@ namespace MP_Npc.Perception
 
                     Gizmos.DrawLine(_OverlapedCollidersBuffer[i2].transform.position, _ownerGameObject.transform.position);
                     Gizmos.DrawWireSphere(_OverlapedCollidersBuffer[i2].transform.position, 1.5f);
+
+                    // How its possible that this is drawing on GameObjects that are no longer on condition to be able to be perceived???
                 }
             }
         }

@@ -1,20 +1,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 // created at 20-Apr-2026
+/// | 29 Apr 2026 | 001
+/// | 08 Jul 2026 | 002
+/// | 09 Jul 2026 | 003
+/// | 23 Jul 2026 | 004
 namespace MP_Npc.Perception
 {
-    public class PerceptionSystem
+    public class PerceptionSystem : IStimulusReceiver
     {
         protected GameObject _ownerGameObject;
         protected Transform _ownerTransform;
         protected NpcPerceptionData _npcPerceptionData;
 
-        protected List<GameObject> _listGo;
+        protected List<GameObject> _perceivedGameObjectsList;
 
         protected VisionSense _visionSense;
+        protected HearingSense _hearingSense;
+
+        public Transform storedTransform {  get; private set; }
+        public Vector3 storedPosition => storedTransform.position;
 
         protected bool _enableDebugMsg;
         protected bool _showGizmos = true;
+
+        protected GlobalPerceptionSystem _globalPerceptionSystem;
 
 
         public PerceptionSystem(in NpcPerceptionData inNpcPerceptionData, in GameObject inGameObject)
@@ -26,7 +36,7 @@ namespace MP_Npc.Perception
             }
             else
             {
-
+                Debug.LogError("[ MARCO ] : " + this + " : inNpcPerceptionData is null !!!");
             }
 
             // Safety check of : input parameter GameObject
@@ -34,6 +44,7 @@ namespace MP_Npc.Perception
             {
                 _ownerGameObject = inGameObject;
                 _ownerTransform = _ownerGameObject.transform;
+                storedTransform = _ownerTransform;
             }
             else
             {
@@ -41,10 +52,19 @@ namespace MP_Npc.Perception
             }
 
             // initialize array
-            _listGo = new List<GameObject>(_npcPerceptionData.perceivedBufferSize);
+            _perceivedGameObjectsList = new List<GameObject>(_npcPerceptionData.perceivedBufferSize);
 
-            // create vision sense
-            _visionSense = new VisionSense(inPerceptionSystem: this, inGameObject: _ownerGameObject);
+            if(inNpcPerceptionData.hasVision == true)
+            {
+                // create vision sense
+                _visionSense = new VisionSense(inPerceptionSystem: this, inGameObject: _ownerGameObject);
+            }
+            
+            if(inNpcPerceptionData.hasHearing == true)
+            {
+                // create hearing sense
+                _hearingSense = new HearingSense(this, _ownerGameObject);
+            }
         }
 
         // added on 20 - Apr - 2026
@@ -60,6 +80,11 @@ namespace MP_Npc.Perception
         public virtual void Method_ExecutePerceptionSystem()
         {
             _visionSense.Method_Execute();
+
+            if (_enableDebugMsg)
+            {
+                Debug.Log(this + " : _perceivedGameObjectsList.Count = " + _perceivedGameObjectsList.Count);
+            }
         }
 
         // added on 20-Apr-2026
@@ -67,9 +92,9 @@ namespace MP_Npc.Perception
         {
             if (_enableDebugMsg) { Debug.Log(this + " : [ MARCO ] : Method_OnEnterPerception(in GameObject inGameObject);"); }
 
-            if (_listGo.Contains(inGameObject) == false)
+            if (_perceivedGameObjectsList.Contains(inGameObject) == false)
             {
-                _listGo.Add(inGameObject);
+                _perceivedGameObjectsList.Add(inGameObject);
             }
             else
             {
@@ -85,71 +110,48 @@ namespace MP_Npc.Perception
         public virtual void Method_OnSenseLostPerception(in GameObject inGameObject)
         {
             if (_enableDebugMsg) { Debug.Log(this + "virtual void Method_OnSenseLostPerception(in GameObject inGameObject);"); }
+            //Debug.Log(this + "virtual void Method_OnSenseLostPerception(in GameObject inGameObject);");
 
-            if (_listGo.Contains(inGameObject))
+            if (_perceivedGameObjectsList.Contains(inGameObject))
             {
-                _listGo.Remove(inGameObject);
+                _perceivedGameObjectsList.Remove(inGameObject);
             }
             else
             {
-                Debug.LogError(this + " : [ MARCO ] : Method_OnSenseLostPerception('inGameObject') : _listGo does not contain received GameObject reference !!!");
-            }
-        }
-
-        // added on 20-apr-2026
-        public virtual void Method_PerceiveDanger(in StimuliEmitter inEmitter, out int outMenace)
-        {
-            if (inEmitter == null)
-            {
-                Debug.LogError(this + " : [ MARCO ] : Method_PerceiveDanger(...) : ''inEmitter'' is null!!!");
-                outMenace = 0;
-                return;
-            }
-            else
-            {
-                inEmitter.Method_GetMenaceValue(out outMenace);
+                Debug.LogError(this + " : [ MARCO ] : Method_OnSenseLostPerception('inGameObject') : _perceivedGameObjectsList does not contain received GameObject reference !!!");
             }
         }
 
         // addded on 21 - Apr - 2026
         public void Method_ReturnPerceivedGO(out List<GameObject> outList)
         {
-            outList = _listGo;
+            outList = _perceivedGameObjectsList;
         }
 
-        // addes on 20-Apr-2026
-        //public virtual void Method_ExecuteVisionSense()
-        //{
-        //    Collider[] lcSensedColliders = Physics.OverlapSphere(position: _ownerTransform.position, radius: _npcPerceptionData.visionSenseData.distance, layerMask: _npcPerceptionData.visionSenseData.visionLayerMask, queryTriggerInteraction: QueryTriggerInteraction.Ignore);
-            
-        //    if(lcSensedColliders.Length != 0)
-        //    {
-        //        for(int i = 0; i < lcSensedColliders.Length; i++)
-        //        {
-        //            GameObject lcGameObject = lcSensedColliders[i].gameObject;
+        // [ 17 - May - 2026 ] #Added
+        public VisionSense Method_ReturnVisionSense() // I add this function so i can on behavior tasks acess what vision had sensed; maybe better to just has a list of each sense sensed GO? but if so need to handle it
+        {
+            return _visionSense;
+        }
 
-        //            if (_listGo.Contains(lcGameObject) == false)
-        //            {
-        //                this.Method_OnEnterPerception(lcGameObject);
-        //            }
-        //        }
-        //    }
+        // [ 09 Jul 2026 ] #Added
+        public bool MfuncHasPerceptionOfSomething(out bool outHasSee, out bool outHasHear)
+        {
+            // General bool;
+            bool returnValue;
+            if (_perceivedGameObjectsList.Count > 0) { returnValue = true; }
+            else { returnValue = false; }
 
-        //    // "forget" / lost sight
-        //    for(int i = 0; i < _listGo.Count; i++)
-        //    {
-        //        if(_listGo[i] != null)
-        //        {
-        //            float lcDistance = (_ownerTransform.position - _listGo[i].transform.position).magnitude;
-        //            if(lcDistance <= _npcPerceptionData.visionSenseData.lostSightDistance)
-        //            {
-        //                _listGo.RemoveAt(i);
-        //            }
-        //        }
-        //    }
-        //}
+            // vision bool...
+            if(_visionSense.Method_ReturnSensedGameObjectsList().Count > 0) { outHasSee = true; }
+            else {  outHasSee = false; }
 
+            // sound bool
+            if(_hearingSense.Method_ReturnSensedGameObjectsList().Count > 0) { outHasHear = true; }
+            else { outHasHear = false; }
 
+            return returnValue;
+        }
         // GIZMOS
         public virtual void Method_DrawPerceptionGizmos()
         {
@@ -158,15 +160,27 @@ namespace MP_Npc.Perception
                 _visionSense.Method_DrawGizmos();
             }
             
-            //for(int i = 0; i < _listGo.Count;i++)
+            //for(int i = 0; i < _perceivedGameObjectsList.Count;i++)
             //{
-            //    if (_listGo[i] != null)
+            //    if (_perceivedGameObjectsList[i] != null)
             //    {
             //        Gizmos.color = _npcPerceptionData.gizmoColorDetection;
-            //        Gizmos.DrawWireSphere(_listGo[i].transform.position, 1.5f);
-            //        Gizmos.DrawLine(_ownerGameObject.transform.position, _listGo[i].transform.position);
+            //        Gizmos.DrawWireSphere(_perceivedGameObjectsList[i].transform.position, 1.5f);
+            //        Gizmos.DrawLine(_ownerGameObject.transform.position, _perceivedGameObjectsList[i].transform.position);
             //    }
             //}
+        }
+        // IStimulusReceiver | IStimulusReceiver | IStimulusReceiver | IStimulusReceiver | IStimulusReceiver | IStimulusReceiver | IStimulusReceiver | IStimulusReceiver | IStimulusReceiver | IStimulusReceiver |
+
+        // implemented at 29 - Apr - 2026
+        public void IMethod_ReceiveSoundStimuli(in StSoundStimuli inSountStimuli)
+        {
+            _hearingSense.Method_ReceiveSoundStimuli(inSountStimuli);
+        }
+
+        public List<GameObject> Method_GetPerceivedGO() // [ 23 Jul 2026 ] #Added
+        {
+            return _perceivedGameObjectsList;
         }
     }
 }

@@ -284,6 +284,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Moutinhoart.Mpnpc::MP_Npc.NpcComponent
   _goTarget: {fileID: 0}
   _perceptionData: {fileID: 11400000, guid: 8d7700add4a39ab48a8387268aacda95, type: 2}
+  _personalityData: {fileID: 11400000, guid: 03609706376dd254c852fc5fecaa1721, type: 2}
   _gizmoColorPathCorner: {r: 0.4, g: 0.2, b: 0.6, a: 1}
   _gizmoColorPathLines: {r: 0.5764706, g: 0.4392157, b: 0.8588236, a: 1}
 --- !u!114 &1170086280118792751

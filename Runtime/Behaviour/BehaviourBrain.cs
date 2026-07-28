@@ -1,43 +1,39 @@
 using UnityEngine;
+using MP_Npc.Perception;
+
 // created at  : 12-Apr-2026
-// last change : 13-Apr-2026
+
+/// | 22 May 2026 | 001
+/// | 29 Jun 2026 | 002 | FuncTick
+/// | 09 Jul 2026 | 003
+
 namespace MP_Npc.Behavior
 {
     // the behaviour brain class is responsible to decide the behaviour of a npc (non-playable-character);
+
+    /// <summary>
+    /// NPC core behaviour center unit of processing. It is essencial a Manager for all Npc related systems. Like a manager or organizer.
+    /// It is responsible to create and build "sub systems" like Perception System and Utility Decidir. I decided to struct like this only be more easy to change stuff.~Seperation of concerns.
+    /// </summary>
+    /// <remarks>[ Central Unit of Behaviour ]</remarks>
     public class BehaviourBrain
     {
+        // of Owner
+        //...
         protected NpcPersonalityData _personalityData;
-
-        protected NpcBlackboard _blackBoard;
         protected NpcComponent _ownerNpcComponent;
-        protected BaseTask _currentAction;
+
+        protected PerceptionSystem _ownerPerceptionSystem; // Perception system is created and owned by the NpcComponent not this class
+
+        // owns :
+        //...
+        protected NpcBlackboard _blackBoard;
+        protected UtilityDecider _utilityDecider;
+        //protected StWorldContext _worldContext; // <- should this be only on Blackboard ?
 
         protected GameObject _ownerGameObject;
 
-        protected int _driveToAttack;
-        protected int _driveToDefend;
-
-        protected int _driveToFlee; // how to calculate this?
-        protected int _driveToFight; // how to calculate this?
-        
-        // a more open ended drive, maybe usefull for non combat games, maybe for cozy games, or open world games
-        protected int _driveToExplore;
-
-        // use to investigate for exemple sensed stimulus
-        protected int _driveToInvestigate;
-
-        // World context
-        protected bool _bIsFighting;
-
-        // use to calculate what should do when on a survival/combat context. HOW?
-        protected int _DangerLevel;
-
-        // for exemple is being attacked, this is a "split second" event so it is considered apart of the overall danger, cause in the middle of a ex: fight maybe times that are more criticals than others
-        protected int _firstDegreeDangerLevel;
-
-        protected int _danger;
-
-        public BehaviourBrain(in NpcComponent inNpcComponent, in NpcPersonalityData inPersonalityData, in GameObject inGameObject)
+        public BehaviourBrain(in NpcComponent inNpcComponent, in NpcPersonalityData inPersonalityData, in GameObject inGameObject, in PerceptionSystem inPerceptionSystem)
         {
             // safety check of : input parameter of type : NpcComponent
             if (inNpcComponent != null)
@@ -59,52 +55,78 @@ namespace MP_Npc.Behavior
                 Debug.LogError(this + " : [ MARCO ] : BehaviourBrain(constructor...) : inPersonalityData is null !!!");
             }
 
+            // safety check of : in GameObject
+            if (inGameObject != null)
+            {
+                _ownerGameObject = inGameObject;
+            }
+            else { Debug.LogError(this + " : [ MARCO ] : BehaviourBrain(constructor...) : inGameObject is null !!!"); }
+
+            if (inPerceptionSystem == null) { Debug.LogError(this + " : BehaviourBrain(constructor...) : inPerceptionSystem is null !!!"); }
+            else { _ownerPerceptionSystem = inPerceptionSystem; }
+
             // create a blackboard
             _blackBoard = new NpcBlackboard();
-        }
 
-        protected virtual void Method_BehaviorSelector()
-        {
-            // Combat
-            // Q: where / when do the character moves?
-            // A: inside the selected action! Depending on the selected action it have diferent moves requirments(directions/speeds/targets)
-            if (_bIsFighting)
-            {
-                // attack vs defend/block
-                if (_driveToAttack > _driveToDefend)
-                {
-                    // call atack action - select better possible attack action option
-                }
-                else
-                {
-                    if (_driveToAttack == _driveToDefend)
-                    {
-
-                    }
-                }
-            }
-
-
-        }
-
-        // added on 13-Apr-2026
-        // start to work on 20-Apr-2026
-        protected virtual void Method_ComputeDrives()
-        {
-            _blackBoard.bbKeyStimuliEmitter.Method_GetMenaceValue(out _DangerLevel);
+            // create the Utility Decider
+            _utilityDecider = new UtilityDecider(_blackBoard);
         }
 
         // added on 20-Apr-2026
         public virtual void Method_SetBlackboardKeysOfOwnerReferences()
         {
-            _blackBoard.bbKeyOwnerGameObject = _ownerGameObject;
-            _blackBoard.bbKeyOwnerTransform = _ownerGameObject.transform;
-            _blackBoard.bbKeyOwnerBehaviourBrain = this;
+            _blackBoard.OwnerGameObject = _ownerGameObject;
+            _blackBoard.OwnerTransform = _ownerGameObject.transform;
+            _blackBoard.OwnerBehaviourBrain = this;
 
             // brain -> NpcComp -> brain -> blackboard
-            _blackBoard.bbKeyOwnerPerceptionSystem = _ownerNpcComponent.Method_ReturnPerceptionSystem();
-            _blackBoard.bbKeyOwnerNavMeshAgent = _ownerNpcComponent.Method_ReturnNavMeshAgent();
-            
+            _blackBoard.OwnerPerceptionSystem = _ownerNpcComponent.Method_ReturnPerceptionSystem();
+            _blackBoard.OwnerNavMeshAgent = _ownerNpcComponent.Method_ReturnNavMeshAgent();
+
+        }
+
+        // [ 22 - May - 2026 ] #Created
+        public virtual void ProcessPerceivedCharacters()
+        {
+            /// processa o GO sensitidos pelo sistema de percepção, de forma a perceber se existe alguma ameaça;
+            /// ao analizar o que os outros "Characters" estão a fazer... e o que são, pois, deve ser possivel um AI perceber se por exemplo se existe um outro character que possa ser hostil a ele
+            /// se forma a querer o evitar ou atacar de surpresa.
+        }
+
+        // [ 22 - May - 2026 ] #Created
+        public virtual void ProcessStimuli()
+        {
+            /// processa o que sentiu, este script é o cerebro e é neste script, ou pelo menos atraves deste script que se processa o que acontece com o que se sabe/sente
+        }
+
+        // [ 25 - May - 2026 ] #Created
+        public NpcBlackboard GetBlackboard()
+        {
+            if (_blackBoard != null) { return _blackBoard; }
+            else { Debug.LogError(this + " : public NpcBlackboard GetBlackboard() :  _blackboard is null !!!"); return null; ; }
+        }
+
+        public virtual void ExecuteTick()
+        {
+            //_utilityDecider.CalculateStatesScore();
+        }
+
+        // [ 09 Jul 2026 ] #Added
+
+        /// <summary>
+        /// This function should work like a 'notification'
+        /// </summary>
+        /// <param name="inGameObjects"></param>
+        public virtual void MFuncOnPerceptionEnter(in GameObject inGameObjects)
+        {
+            // interrupt something?
+        }
+
+        // [ 10 Jul 2026 ] #Added
+        public virtual bool MfuncHasPerceivedAnyEnemy()
+        {
+            return false; // temp
         }
     }
-}
+    // end of class
+}   

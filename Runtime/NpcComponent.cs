@@ -8,6 +8,9 @@ using MP_Npc.Perception;
 /// | 29 Jun 2026 | 001 | add tick rates for Brain and Perception
 /// | 30 Jun 2026 | 002 | implement tick "rate"/interval
 /// | 09 Jul 2026 | 003 |
+/// | 29 Jul 2026 | 004 | Implement blackboard extension configuration
+/// | 18 Ago 2026 | 005 | Add BStateMachine ref / _BSM
+/// | 20 Ago 2026 | 006 | add XFuncConfigureBlackboardExtensions call on Start
 namespace MP_Npc
 {
     /// <summary>
@@ -39,6 +42,8 @@ namespace MP_Npc
         [SerializeField] protected NpcPersonalityData _personalityData;
         [SerializeField] protected BehaviourData _behaviourData;
         [SerializeField] protected UtilityDeciderData _utilityDeciderData;
+        
+        [SerializeField] protected BStateMachine _BSM;
 
         private void Awake()
         {
@@ -81,6 +86,9 @@ namespace MP_Npc
             // set initial blackboard keys ( relative to the owner )
             _behaviourBrain.Method_SetBlackboardKeysOfOwnerReferences();
 
+            // add blackboard extensions
+            XFuncConfigureBlackboardExtensions();
+
             _globalPerceptionSystem = FindAnyObjectByType<GlobalPerceptionSystem>();
             if (_globalPerceptionSystem != null) { Debug.Log(this + " : GPS found!"); }
 
@@ -106,7 +114,7 @@ namespace MP_Npc
             if(_brainTickTimer >= _behaviourData.aiBrainTickInterval)
             {
                 // [ 29 Jun 2026 ] run brain and behaviour
-                _behaviourBrain.ExecuteTick();
+               _behaviourBrain.ExecuteTick();
 
                 // reset brain tick timer
                 _brainTickTimer = 0;
@@ -186,6 +194,30 @@ namespace MP_Npc
             _lastCellCoordinate = _currentCellCoordinate;
         }
 
+        // [ 29 Jul 2026 ] #Created
+        protected void XFuncConfigureBlackboardExtensions()
+        {
+            if (_utilityDeciderData.bNavigationExtension)
+            {
+                _behaviourBrain.GetBlackboard().blackBoardExtencions.Add(new NavigationBbExtension());
+            }
+        }
+
+        // [ 18 Ago 2026 ]
+        public bool XfuncTryGetBSM(out BStateMachine outBSM)
+        {
+            if(_BSM != null)
+            {
+                outBSM = _BSM;
+                return true;
+            }
+            else
+            {
+                outBSM=null;
+                return false;
+            }
+        }
+
         // GIZMOS stuff | GIZMOS stuff | GIZMOS stuff | GIZMOS stuff | GIZMOS stuff | GIZMOS stuff | GIZMOS stuff | GIZMOS stuff | GIZMOS stuff | GIZMOS stuff | GIZMOS stuff | GIZMOS stuff | GIZMOS stuff | GIZMOS stuff | GIZMOS stuff |
 
         [Header("Colors")]
@@ -238,10 +270,17 @@ namespace MP_Npc
             //    Gizmos.color = _gizmoColorPathLines;
             //    Gizmos.DrawLineStrip(_currentPath.corners, false);
 
-                //Gizmos.color = Color.red;
-                //Gizmos.DrawWireSphere(_goTarget.position, 1);
+            //Gizmos.color = Color.red;
+            //Gizmos.DrawWireSphere(_goTarget.position, 1);
 
             //}
+            if (Application.isPlaying)
+            {
+                Gizmos.color = Color.red;
+                Vector3 position = _behaviourBrain.GetBlackboard().bbk_OwnerNavMeshAgent.destination;
+                Gizmos.DrawWireSphere(position, 2);
+                Gizmos.DrawWireSphere(position, 0.5f);
+            }
         }
     }
 }

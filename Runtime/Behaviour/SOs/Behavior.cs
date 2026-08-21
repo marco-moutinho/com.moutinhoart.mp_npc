@@ -18,6 +18,6 @@ namespace MP_Npc.Behavior
         public abstract float FuncCalculateScore();
 
         // [ 10 Jul 2026 ] #Added
-        public abstract void MfuncRunBehavior(in BehaviourBrain inBrain);
+        public abstract void MfuncRunBehavior(in BehaviourBrain inBrain, out EBehaviourPhase outBehaviourPhase);
     }
 }

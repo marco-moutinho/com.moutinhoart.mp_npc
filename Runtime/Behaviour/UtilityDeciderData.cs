@@ -16,5 +16,8 @@ namespace MP_Npc.Behavior
 
         [SerializeField, Tooltip("[ MARCO ] :\nAdd State Data (scriptable objcects) that add possible states to AI NPC.")]
         public List<Behavior> StateDataPool;
+
+        [Header("[ Blackboard Extensions ]")]
+        public bool bNavigationExtension = false;
     }
 }

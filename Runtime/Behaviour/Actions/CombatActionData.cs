@@ -32,7 +32,7 @@ namespace MP_Npc.Behavior
             // safety check
             if(npcBb == null) { Debug.LogError(this + " : public override float Evaluate(...) : npcBb is null !!!"); return 0f; }
 
-            float distance = Vector3.Distance(npcBb.OwnerTransform.position, npcBb.bbKeyTargetGameObject.transform.position);
+            float distance = Vector3.Distance(npcBb.bbk_OwnerTransform.position, npcBb.bbKeyTargetGameObject.transform.position);
             
             
             if (distance < MinOpponentDistance || distance > MaxOpponentDistance) { return 0f; }

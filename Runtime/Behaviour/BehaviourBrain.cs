@@ -6,6 +6,8 @@ using MP_Npc.Perception;
 /// | 22 May 2026 | 001
 /// | 29 Jun 2026 | 002 | FuncTick
 /// | 09 Jul 2026 | 003
+/// | 18 Ago 2026 | 005 | create MfuncRunStateMachine
+/// | 19 Ago 2026 | 006 | re factor XfuncRunStateMachine
 
 namespace MP_Npc.Behavior
 {
@@ -75,13 +77,26 @@ namespace MP_Npc.Behavior
         // added on 20-Apr-2026
         public virtual void Method_SetBlackboardKeysOfOwnerReferences()
         {
-            _blackBoard.OwnerGameObject = _ownerGameObject;
-            _blackBoard.OwnerTransform = _ownerGameObject.transform;
+            _blackBoard.bbk_OwnerGameObject = _ownerGameObject;
+            _blackBoard.bbk_OwnerTransform = _ownerGameObject.transform;
             _blackBoard.OwnerBehaviourBrain = this;
 
             // brain -> NpcComp -> brain -> blackboard
             _blackBoard.OwnerPerceptionSystem = _ownerNpcComponent.Method_ReturnPerceptionSystem();
-            _blackBoard.OwnerNavMeshAgent = _ownerNpcComponent.Method_ReturnNavMeshAgent();
+            _blackBoard.bbk_OwnerNavMeshAgent = _ownerNpcComponent.Method_ReturnNavMeshAgent();
+
+            // on this line I had try to set a variable on Blackboard and at the same time to make it a validation check by set it inside a Tryget function on a if statment
+            if(_ownerNpcComponent.XfuncTryGetBSM(out _blackBoard.bbk_BSM))
+            {
+                Debug.Log("[ MARCO ] : " + this + " : " +  _blackBoard.bbk_BSM.name);
+
+                // Set Current Behaviour as the root Behaviour ( slot struct ), this should be the first thing the BSM runs when it first starts
+                _blackBoard.bbk_CurrentBehaviourSlot = _blackBoard.bbk_BSM.XfuncReturnRootSlot();
+            }
+            else
+            {
+                Debug.LogError("[ ERROR ] : " + this + " : Method_SetBlackboardKeysOfOwnerReferences() : if(_ownerNpcComponent.XfuncTryGetBSM(out _blackBoard.bbk_BSM)) was FALSE !!!");
+            }
 
         }
 
@@ -109,6 +124,8 @@ namespace MP_Npc.Behavior
         public virtual void ExecuteTick()
         {
             //_utilityDecider.CalculateStatesScore();
+
+            XfuncRunBSM();
         }
 
         // [ 09 Jul 2026 ] #Added
@@ -127,6 +144,56 @@ namespace MP_Npc.Behavior
         {
             return false; // temp
         }
+
+        // [ 18 Ago 2026 ] #Added | [ 19 Ago 2026 ] #Complete Refactor
+        public virtual void XfuncRunBSM()
+        {
+            // safety check
+            if(_blackBoard.bbk_CurrentBehaviourSlot.behaviour == null)
+            {
+                Debug.LogError("[ MARCO ] : " + this + " : public virtual void XfuncRunBSM() : if(_blackBoard.bbk_CurrentBehaviourSlot.behaviour == null) !!!");
+                // TO DO : Initialize "default" _blackBoard.bbk_CurrentBehaviourSlot.behaviour...
+                //          BUT it suposed to be on line 94
+            }
+
+            EBehaviourPhase eBehaviourPhase;
+            _blackBoard.bbk_CurrentBehaviourSlot.behaviour.MfuncRunBehavior(this, out eBehaviourPhase);
+
+            /// TO DO :
+            /// Like this I only set the currentBehavior a class ptr, but i need to point the struct that contain the Behaviour, and the pointers on Success and on Failure
+           
+            // var used to search what behaviour slot is to Transit
+            Behavior nextBehaviourRef;
+
+            switch (eBehaviourPhase)
+            {
+
+                case EBehaviourPhase.Running:
+                    // Give some Debug Feedback, maybe even create a Debug in game HUD/UI
+                    Debug.Log("[ MARCO ] : " + this + " : XfuncRunBSM() : EBehaviourPhase.Running...");
+                    break;
+
+                case EBehaviourPhase.Completed:
+                    nextBehaviourRef = _blackBoard.bbk_CurrentBehaviourSlot.behaviourOnSucceded;
+                    if(_blackBoard.bbk_BSM.XfuncTryGetSlotByBehavior(nextBehaviourRef, out _blackBoard.bbk_CurrentBehaviourSlot))
+                    {
+                        _blackBoard.bbk_CurrentBehavior = _blackBoard.bbk_CurrentBehaviourSlot.behaviourOnSucceded;
+                    }
+                    break;
+
+                case EBehaviourPhase.Failed:
+                    nextBehaviourRef = _blackBoard.bbk_CurrentBehavior = _blackBoard.bbk_CurrentBehaviourSlot.behaviourOnFailed;
+                    if(_blackBoard.bbk_BSM.XfuncTryGetSlotByBehavior(nextBehaviourRef, out _blackBoard.bbk_CurrentBehaviourSlot))
+                    {
+                        _blackBoard.bbk_CurrentBehavior = _blackBoard.bbk_CurrentBehaviourSlot.behaviourOnFailed;
+                    }
+                    break;
+            }
+        }
     }
     // end of class
-}   
+}
+
+/// TO DO : 
+/// Add a Full UI/HUD to debug a selected/focused NPC/Ai/BRAIN,
+///     this could be even a game mechanic for the ExilionNexus Metaverse game project

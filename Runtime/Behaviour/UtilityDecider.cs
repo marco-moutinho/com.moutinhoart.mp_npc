@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 namespace MP_Npc.Behavior
 {

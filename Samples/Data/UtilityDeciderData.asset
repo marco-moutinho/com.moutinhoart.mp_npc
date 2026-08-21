@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: UtilityDeciderData
   m_EditorClassIdentifier: Moutinhoart.Mpnpc::MP_Npc.Behavior.UtilityDeciderData
   uName: Placeholder Name
-  RootState: {fileID: 11400000, guid: 1570f95d8cda29848b57e3b5db302d5f, type: 2}
+  RootState: {fileID: 0}
   StateDataPool:
   - {fileID: 0}
   - {fileID: 0}
+  bNavigationExtension: 1
